@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Building2, Mail, Lock, User, Phone, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Building2, Mail, Lock, User, Phone, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { signUpAction } from '@/app/actions/auth';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -12,15 +13,26 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg('');
 
-    setTimeout(() => {
+    try {
+      const res = await signUpAction({ name, email, password, phone });
+      if (res.success && res.redirectTo) {
+        router.push(res.redirectTo);
+        router.refresh();
+      } else {
+        setErrorMsg(res.error || 'Registration failed. Please check inputs.');
+        setLoading(false);
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Registration failed.');
       setLoading(false);
-      router.push('/dashboard');
-    }, 600);
+    }
   };
 
   return (
@@ -74,6 +86,13 @@ export default function RegisterPage() {
             <p className="text-xs text-slate-500 mt-1">
               Start discovering and booking verified venues today.
             </p>
+
+            {errorMsg && (
+              <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
 
             <form onSubmit={handleRegister} className="mt-6 space-y-3.5">
               <div className="space-y-1">

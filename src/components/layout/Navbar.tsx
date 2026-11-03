@@ -12,8 +12,10 @@ import {
   X, 
   ShieldCheck, 
   Heart,
-  ChevronDown
+  ChevronDown,
+  LogOut
 } from 'lucide-react';
+import { signOutAction } from '@/app/actions/auth';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -155,13 +157,16 @@ export default function Navbar() {
 
                   <div className="border-t border-slate-100 my-1" />
 
-                  <Link
-                    href="/login"
-                    onClick={() => setProfileDropdownOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors"
+                  <button
+                    onClick={async () => {
+                      setProfileDropdownOpen(false);
+                      await signOutAction();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors text-left"
                   >
-                    Sign Out
-                  </Link>
+                    <LogOut className="w-4 h-4 text-rose-500" />
+                    <span>Sign Out</span>
+                  </button>
                 </div>
               )}
             </div>

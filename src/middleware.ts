@@ -8,10 +8,11 @@ export async function middleware(request: NextRequest) {
     },
   });
 
+  const { pathname } = request.nextUrl;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If Supabase credentials are placeholder or missing, allow standard pass-through
+  // If Supabase credentials are placeholder or missing, allow standard pass-through in demo mode
   if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder')) {
     return response;
   }
@@ -63,7 +64,36 @@ export async function middleware(request: NextRequest) {
   );
 
   // Refresh auth session
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Protected Admin Routes: /admin/* (except /admin/login)
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+    if (!user) {
+      const loginUrl = new URL('/admin/login', request.url);
+      loginUrl.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Role check from user_metadata or profiles
+    const role = user.user_metadata?.role;
+    if (role && role !== 'admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+  }
+
+  // Protected Host/Customer Routes: /dashboard/*
+  if (pathname.startsWith('/dashboard')) {
+    if (!user) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // Redirect authenticated users away from /login or /register
+  if ((pathname === '/login' || pathname === '/register') && user) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
 
   return response;
 }
@@ -71,11 +101,8 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * Match all request paths except for:
+     * - _next/static, _next/image, favicon.ico, images/assets
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

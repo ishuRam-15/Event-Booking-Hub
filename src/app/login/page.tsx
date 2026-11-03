@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Building2, Mail, Lock, ShieldCheck, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Building2, Mail, Lock, ShieldCheck, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { signInAction } from '@/app/actions/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,19 +12,26 @@ export default function LoginPage() {
   const [email, setEmail] = useState('karthik.s@gmail.com');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg('');
 
-    setTimeout(() => {
-      setLoading(false);
-      if (role === 'admin') {
-        router.push('/admin/dashboard');
+    try {
+      const res = await signInAction({ email, password, role });
+      if (res.success && res.redirectTo) {
+        router.push(res.redirectTo);
+        router.refresh();
       } else {
-        router.push('/dashboard');
+        setErrorMsg(res.error || 'Authentication failed. Please verify credentials.');
+        setLoading(false);
       }
-    }, 600);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Login failed.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -109,6 +117,13 @@ export default function LoginPage() {
             <p className="text-xs text-slate-500 mt-1">
               Enter your credentials to access your account dashboard.
             </p>
+
+            {errorMsg && (
+              <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
 
             <form onSubmit={handleLogin} className="mt-6 space-y-4">
               <div className="space-y-1">

@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, Lock, Mail, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
+import { signInAction } from '@/app/actions/auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -11,15 +12,26 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('adminpass123');
   const [authCode, setAuthCode] = useState('892144');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg('');
 
-    setTimeout(() => {
+    try {
+      const res = await signInAction({ email, password, role: 'admin' });
+      if (res.success && res.redirectTo) {
+        router.push(res.redirectTo);
+        router.refresh();
+      } else {
+        setErrorMsg(res.error || 'Admin verification failed.');
+        setLoading(false);
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Login error.');
       setLoading(false);
-      router.push('/admin/dashboard');
-    }, 600);
+    }
   };
 
   return (
@@ -44,6 +56,13 @@ export default function AdminLoginPage() {
             Restricted operations access for venue managers and auditors
           </p>
         </div>
+
+        {errorMsg && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
 
         <form onSubmit={handleAdminLogin} className="space-y-4">
           <div className="space-y-1">
