@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   CalendarCheck2, 
@@ -15,16 +15,49 @@ import {
   Heart, 
   Layers,
   Building2,
-  Calendar
+  Calendar,
+  Printer
 } from 'lucide-react';
 import { MOCK_BOOKINGS, MOCK_CURRENT_USER } from '@/lib/mock-data';
+import { getUserBookings } from '@/lib/dal/bookings';
+import { getCurrentUserProfile } from '@/app/actions/auth';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { Booking } from '@/types';
+import GstInvoiceModal from '@/components/modals/GstInvoiceModal';
 
 export default function CustomerDashboardPage() {
   const [tab, setTab] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
-  const user = MOCK_CURRENT_USER;
+  const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
+  const [user, setUser] = useState(MOCK_CURRENT_USER);
+  const [selectedInvoiceBooking, setSelectedInvoiceBooking] = useState<Booking | null>(null);
 
-  const filteredBookings = MOCK_BOOKINGS.filter((b) => {
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [liveBookings, liveProfile] = await Promise.all([
+          getUserBookings(),
+          getCurrentUserProfile(),
+        ]);
+        if (liveBookings && liveBookings.length > 0) {
+          setBookings(liveBookings);
+        }
+        if (liveProfile && liveProfile.user) {
+          setUser((prev) => ({
+            ...prev,
+            name: liveProfile.user.name || prev.name,
+            email: liveProfile.user.email || prev.email,
+          }));
+        }
+      } catch (err) {
+        console.warn('Customer dashboard DAL fallback:', err);
+      }
+    }
+    loadData();
+  }, []);
+
+  const totalSpent = bookings.reduce((sum, b) => sum + (b.pricing?.grossTotal || 0), 0);
+
+  const filteredBookings = bookings.filter((b) => {
     if (tab === 'upcoming') return b.bookingStatus === 'confirmed' || b.bookingStatus === 'pending';
     if (tab === 'completed') return b.bookingStatus === 'completed';
     if (tab === 'cancelled') return b.bookingStatus === 'cancelled';
@@ -66,13 +99,13 @@ export default function CustomerDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Bookings</span>
-          <p className="text-2xl font-extrabold text-slate-900">{user.bookingsCount}</p>
-          <span className="text-xs text-slate-500 block">Across 2 Metros</span>
+          <p className="text-2xl font-extrabold text-slate-900">{bookings.length}</p>
+          <span className="text-xs text-slate-500 block">Verified Reservations</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Spent</span>
-          <p className="text-2xl font-extrabold text-brand-gold">{formatCurrency(user.totalSpent)}</p>
+          <p className="text-2xl font-extrabold text-brand-gold">{formatCurrency(totalSpent)}</p>
           <span className="text-xs text-emerald-600 font-medium">100% Tax Compliant</span>
         </div>
 
@@ -86,8 +119,8 @@ export default function CustomerDashboardPage() {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">GST Registration</span>
-          <p className="text-sm font-bold text-slate-800 font-mono mt-1">{user.gstin || 'Personal'}</p>
-          <span className="text-xs text-slate-400">ITC Eligible</span>
+          <p className="text-sm font-bold text-slate-800 font-mono mt-1">{user.gstin || 'Personal / ITC'}</p>
+          <span className="text-xs text-slate-400">SAC 997212 Eligible</span>
         </div>
       </div>
 
@@ -104,7 +137,7 @@ export default function CustomerDashboardPage() {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Upcoming Events ({MOCK_BOOKINGS.filter((b) => b.bookingStatus !== 'completed' && b.bookingStatus !== 'cancelled').length})
+              Upcoming Events ({bookings.filter((b) => b.bookingStatus !== 'completed' && b.bookingStatus !== 'cancelled').length})
             </button>
             <button
               onClick={() => setTab('completed')}
@@ -114,7 +147,7 @@ export default function CustomerDashboardPage() {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Completed Events
+              Completed Events ({bookings.filter((b) => b.bookingStatus === 'completed').length})
             </button>
             <button
               onClick={() => setTab('cancelled')}
@@ -124,12 +157,12 @@ export default function CustomerDashboardPage() {
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Cancelled Bookings
+              Cancelled Bookings ({bookings.filter((b) => b.bookingStatus === 'cancelled').length})
             </button>
           </div>
 
           <span className="text-xs text-slate-400">
-            Booking history updated in real-time
+            Booking history synchronized in real-time
           </span>
         </div>
 
@@ -139,6 +172,9 @@ export default function CustomerDashboardPage() {
             <div className="text-center py-12 text-slate-500 space-y-2">
               <CalendarCheck2 className="w-10 h-10 text-slate-300 mx-auto" />
               <p className="text-sm font-semibold">No bookings found in this category.</p>
+              <Link href="/venues" className="text-xs text-brand-gold font-bold hover:underline inline-block mt-2">
+                Browse available estates & dates →
+              </Link>
             </div>
           ) : (
             filteredBookings.map((booking) => (
@@ -223,14 +259,14 @@ export default function CustomerDashboardPage() {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => alert(`Downloading GST Invoice for ${booking.referenceNumber}...`)}
-                      className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                      onClick={() => setSelectedInvoiceBooking(booking)}
+                      className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>GST Invoice</span>
+                      <Download className="w-3.5 h-3.5 text-brand-gold" />
+                      <span>View GST Tax Invoice</span>
                     </button>
                     <button
-                      onClick={() => alert('Booking cancellation requested. A coordinator will contact you.')}
+                      onClick={() => alert(`Booking cancellation requested for ${booking.referenceNumber}. A coordinator will contact you.`)}
                       className="text-xs text-rose-600 hover:underline px-3 py-2 font-medium"
                     >
                       Cancel Booking
@@ -242,6 +278,13 @@ export default function CustomerDashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Statutory GST Invoice Modal */}
+      <GstInvoiceModal
+        isOpen={Boolean(selectedInvoiceBooking)}
+        onClose={() => setSelectedInvoiceBooking(null)}
+        booking={selectedInvoiceBooking}
+      />
     </div>
   );
 }

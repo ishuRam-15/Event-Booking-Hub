@@ -149,3 +149,23 @@ export async function toggleBlockAvailabilityAction(blockId: string, isAvailable
     return { success: false, error: err.message };
   }
 }
+
+export async function deleteVenueAction(venueId: string) {
+  try {
+    const supabase = createClient();
+    const { error } = await (supabase.from('venues') as any)
+      .delete()
+      .eq('id', venueId);
+
+    if (error) {
+      console.warn('Supabase deleteVenue warning, fallback mode:', error.message);
+    }
+
+    revalidatePath('/venues');
+    revalidatePath('/admin/venues');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+

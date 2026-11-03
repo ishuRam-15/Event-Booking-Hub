@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CalendarCheck2, 
   Search, 
@@ -17,15 +17,32 @@ import {
   X
 } from 'lucide-react';
 import { MOCK_BOOKINGS } from '@/lib/mock-data';
+import { getAllBookingsAdmin } from '@/lib/dal/bookings';
 import { Booking } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { updateBookingStatusAction } from '@/app/actions/booking';
+import GstInvoiceModal from '@/components/modals/GstInvoiceModal';
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [inspectBooking, setInspectBooking] = useState<Booking | null>(null);
+  const [invoiceBooking, setInvoiceBooking] = useState<Booking | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const liveBookings = await getAllBookingsAdmin();
+        if (liveBookings && liveBookings.length > 0) {
+          setBookings(liveBookings);
+        }
+      } catch (err) {
+        console.warn('Admin bookings DAL fallback:', err);
+      }
+    }
+    loadData();
+  }, []);
 
   const filteredBookings = bookings.filter((b) => {
     const matchesStatus = statusFilter === 'All' || b.bookingStatus === statusFilter;
@@ -270,8 +287,8 @@ export default function AdminBookingsPage() {
               </div>
 
               <button
-                onClick={() => alert(`Official SAC 997212 GST Invoice downloaded for ${inspectBooking.referenceNumber}`)}
-                className="bg-brand-charcoal hover:bg-brand-navy text-brand-gold font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5"
+                onClick={() => setInvoiceBooking(inspectBooking)}
+                className="bg-brand-charcoal hover:bg-brand-navy text-brand-gold font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-sm"
               >
                 <Download className="w-4 h-4" />
                 <span>GST Tax Invoice</span>
@@ -280,6 +297,13 @@ export default function AdminBookingsPage() {
           </div>
         </div>
       )}
+
+      {/* Statutory GST Invoice Modal */}
+      <GstInvoiceModal
+        isOpen={Boolean(invoiceBooking)}
+        onClose={() => setInvoiceBooking(null)}
+        booking={invoiceBooking}
+      />
     </div>
   );
 }

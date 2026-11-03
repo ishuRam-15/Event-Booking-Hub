@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Building2, 
@@ -18,16 +18,42 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { MOCK_ADMIN_METRICS, MOCK_BOOKINGS, MOCK_VENUES } from '@/lib/mock-data';
+import { getAdminMetrics, getAllBookingsAdmin } from '@/lib/dal/bookings';
+import { updateBookingStatusAction } from '@/app/actions/booking';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { Booking } from '@/types';
+import GstInvoiceModal from '@/components/modals/GstInvoiceModal';
 
 export default function AdminDashboardPage() {
-  const [bookings, setBookings] = useState(MOCK_BOOKINGS);
-  const metrics = MOCK_ADMIN_METRICS;
+  const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
+  const [metrics, setMetrics] = useState(MOCK_ADMIN_METRICS);
+  const [selectedInvoiceBooking, setSelectedInvoiceBooking] = useState<Booking | null>(null);
 
-  const handleStatusChange = (bookingId: string, newStatus: 'confirmed' | 'cancelled') => {
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [liveMetrics, liveBookings] = await Promise.all([
+          getAdminMetrics(),
+          getAllBookingsAdmin(),
+        ]);
+        if (liveMetrics) setMetrics(liveMetrics as any);
+        if (liveBookings && liveBookings.length > 0) setBookings(liveBookings);
+      } catch (err) {
+        console.warn('Admin dashboard DAL fallback:', err);
+      }
+    }
+    loadData();
+  }, []);
+
+  const handleStatusChange = async (bookingId: string, newStatus: 'confirmed' | 'cancelled') => {
     setBookings((prev) =>
       prev.map((b) => (b.id === bookingId ? { ...b, bookingStatus: newStatus } : b))
     );
+    try {
+      await updateBookingStatusAction(bookingId, newStatus);
+    } catch (err) {
+      console.warn('Status change error:', err);
+    }
   };
 
   return (
@@ -301,11 +327,11 @@ export default function AdminDashboardPage() {
                         </>
                       )}
                       <button
-                        onClick={() => alert(`Opening GST Invoice for ${booking.referenceNumber}`)}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
-                        title="Download Invoice"
+                        onClick={() => setSelectedInvoiceBooking(booking)}
+                        className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                        title="Download Statutory GST Invoice"
                       >
-                        <Download className="w-4 h-4" />
+                        <Download className="w-4 h-4 text-brand-gold" />
                       </button>
                     </div>
                   </td>
@@ -315,6 +341,13 @@ export default function AdminDashboardPage() {
           </table>
         </div>
       </div>
+
+      {/* Statutory GST Invoice Modal */}
+      <GstInvoiceModal
+        isOpen={Boolean(selectedInvoiceBooking)}
+        onClose={() => setSelectedInvoiceBooking(null)}
+        booking={selectedInvoiceBooking}
+      />
     </div>
   );
 }

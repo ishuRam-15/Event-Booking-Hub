@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -21,14 +21,31 @@ import {
   Heart
 } from 'lucide-react';
 import { MOCK_VENUES } from '@/lib/mock-data';
+import { getFeaturedVenues } from '@/lib/dal/venues';
+import { Venue } from '@/types';
 import VenueCard from '@/components/cards/VenueCard';
 
 export default function HomePage() {
   const router = useRouter();
+  const [venuesList, setVenuesList] = useState<Venue[]>(MOCK_VENUES);
   const [searchLocation, setSearchLocation] = useState('Chennai');
   const [searchDate, setSearchDate] = useState('2026-12-15');
   const [searchType, setSearchType] = useState('wedding');
   const [searchGuests, setSearchGuests] = useState('1000');
+
+  useEffect(() => {
+    async function loadFeatured() {
+      try {
+        const featured = await getFeaturedVenues();
+        if (featured && featured.length > 0) {
+          setVenuesList(featured);
+        }
+      } catch (err) {
+        console.warn('Featured venues load fallback:', err);
+      }
+    }
+    loadFeatured();
+  }, []);
 
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,7 +318,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {MOCK_VENUES.map((venue) => (
+          {venuesList.map((venue) => (
             <VenueCard key={venue.id} venue={venue} />
           ))}
         </div>

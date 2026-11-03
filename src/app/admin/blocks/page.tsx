@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   Layers, 
@@ -19,16 +19,32 @@ import {
   X
 } from 'lucide-react';
 import { MOCK_VENUES } from '@/lib/mock-data';
-import { VenueBlock } from '@/types';
+import { getVenues } from '@/lib/dal/venues';
+import { VenueBlock, Venue } from '@/types';
 import { formatCurrency, formatArea } from '@/lib/utils';
 import { toggleBlockAvailabilityAction } from '@/app/actions/venue';
 
 function DynamicBlocksContent() {
   const searchParams = useSearchParams();
+  const [venuesList, setVenuesList] = useState<Venue[]>(MOCK_VENUES);
   const initialVenueId = searchParams.get('venueId') || MOCK_VENUES[0].id;
   const [selectedVenueId, setSelectedVenueId] = useState(initialVenueId);
 
-  const currentVenue = MOCK_VENUES.find((v) => v.id === selectedVenueId) || MOCK_VENUES[0];
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const liveVenues = await getVenues();
+        if (liveVenues && liveVenues.length > 0) {
+          setVenuesList(liveVenues);
+        }
+      } catch (err) {
+        console.warn('Admin blocks venue load fallback:', err);
+      }
+    }
+    loadData();
+  }, []);
+
+  const currentVenue = venuesList.find((v) => v.id === selectedVenueId) || venuesList[0];
   const [blocks, setBlocks] = useState<VenueBlock[]>(currentVenue.blocks);
   const [editingBlock, setEditingBlock] = useState<VenueBlock | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,7 +52,7 @@ function DynamicBlocksContent() {
   // Switch venue
   const handleVenueChange = (newVenueId: string) => {
     setSelectedVenueId(newVenueId);
-    const found = MOCK_VENUES.find((v) => v.id === newVenueId);
+    const found = venuesList.find((v) => v.id === newVenueId);
     if (found) {
       setBlocks(found.blocks);
     }
@@ -137,7 +153,7 @@ function DynamicBlocksContent() {
             onChange={(e) => handleVenueChange(e.target.value)}
             className="text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-brand-gold"
           >
-            {MOCK_VENUES.map((v) => (
+            {venuesList.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.name} ({v.city})
               </option>

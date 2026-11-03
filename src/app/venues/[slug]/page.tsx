@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { 
@@ -27,6 +27,8 @@ import {
   FileText
 } from 'lucide-react';
 import { MOCK_VENUES } from '@/lib/mock-data';
+import { getVenueBySlug } from '@/lib/dal/venues';
+import { toggleSavedVenueAction } from '@/app/actions/saved';
 import BlockCard from '@/components/cards/BlockCard';
 import BlockCompareModal from '@/components/modals/BlockCompareModal';
 import { formatCurrency, formatArea } from '@/lib/utils';
@@ -36,15 +38,42 @@ export default function VenueDetailPage() {
   const router = useRouter();
   const slug = params?.slug as string;
 
-  const venue = MOCK_VENUES.find((v) => v.slug === slug) || MOCK_VENUES[0];
-
+  const initialVenue = MOCK_VENUES.find((v) => v.slug === slug) || MOCK_VENUES[0];
+  const [venue, setVenue] = useState(initialVenue);
   const [activeTab, setActiveTab] = useState<'overview' | 'blocks' | 'floorplans' | 'location' | 'policies' | 'reviews'>('blocks');
   const [selectedBlockTab, setSelectedBlockTab] = useState<string>('all');
-  const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([venue.blocks[0]?.id || '']);
+  const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([initialVenue.blocks[0]?.id || '']);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [selectedDate, setSelectedDate] = useState('2026-12-15');
   const [timeSlot, setTimeSlot] = useState<'morning' | 'evening' | 'full-day'>('full-day');
+
+  useEffect(() => {
+    async function loadVenue() {
+      if (!slug) return;
+      try {
+        const liveVenue = await getVenueBySlug(slug);
+        if (liveVenue) {
+          setVenue(liveVenue);
+          if (liveVenue.blocks.length > 0) {
+            setSelectedBlockIds([liveVenue.blocks[0].id]);
+          }
+        }
+      } catch (err) {
+        console.warn('Venue slug fetch fallback:', err);
+      }
+    }
+    loadVenue();
+  }, [slug]);
+
+  const handleToggleSave = async () => {
+    setIsSaved(!isSaved);
+    try {
+      await toggleSavedVenueAction(venue.id);
+    } catch (err) {
+      console.warn('Save action error:', err);
+    }
+  };
 
   // Toggle block selection
   const handleToggleBlock = (blockId: string) => {
@@ -90,7 +119,7 @@ export default function VenueDetailPage() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsSaved(!isSaved)}
+              onClick={handleToggleSave}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-xs font-semibold ${
                 isSaved
                   ? 'bg-rose-50 border-rose-200 text-rose-600'

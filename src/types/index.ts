@@ -80,6 +80,7 @@ export interface Venue {
 export interface PricingBreakdown {
   baseRental: number;
   facilitiesCost: number;
+  packageDiscount?: number;
   securityDeposit: number;
   taxableAmount: number;
   cgst: number; // 9% intra-state

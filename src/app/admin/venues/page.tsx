@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Building2, 
@@ -14,6 +14,8 @@ import {
   ArrowUpRight 
 } from 'lucide-react';
 import { MOCK_VENUES } from '@/lib/mock-data';
+import { getVenues } from '@/lib/dal/venues';
+import { deleteVenueAction } from '@/app/actions/venue';
 import { formatCurrency, formatArea } from '@/lib/utils';
 import { Venue } from '@/types';
 
@@ -21,6 +23,20 @@ export default function AdminVenuesPage() {
   const [venues, setVenues] = useState<Venue[]>(MOCK_VENUES);
   const [searchTerm, setSearchTerm] = useState('');
   const [cityFilter, setCityFilter] = useState('All');
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const liveVenues = await getVenues();
+        if (liveVenues && liveVenues.length > 0) {
+          setVenues(liveVenues);
+        }
+      } catch (err) {
+        console.warn('Admin venues DAL fallback:', err);
+      }
+    }
+    loadData();
+  }, []);
 
   const filteredVenues = venues.filter((v) => {
     const matchesSearch =
@@ -30,9 +46,14 @@ export default function AdminVenuesPage() {
     return matchesSearch && matchesCity;
   });
 
-  const handleDelete = (venueId: string) => {
+  const handleDelete = async (venueId: string) => {
     if (confirm('Are you sure you want to delete this venue and all associated blocks?')) {
       setVenues((prev) => prev.filter((v) => v.id !== venueId));
+      try {
+        await deleteVenueAction(venueId);
+      } catch (err) {
+        console.warn('Delete venue action warning:', err);
+      }
     }
   };
 

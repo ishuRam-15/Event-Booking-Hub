@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   Search, 
@@ -17,11 +17,27 @@ import {
   X
 } from 'lucide-react';
 import { MOCK_VENUES } from '@/lib/mock-data';
+import { getVenues } from '@/lib/dal/venues';
 import VenueCard from '@/components/cards/VenueCard';
-import { SearchFilterState } from '@/types';
+import { SearchFilterState, Venue } from '@/types';
 
 function VenuesSearchContent() {
   const searchParams = useSearchParams();
+  const [venuesList, setVenuesList] = useState<Venue[]>(MOCK_VENUES);
+
+  useEffect(() => {
+    async function loadAllVenues() {
+      try {
+        const liveData = await getVenues();
+        if (liveData && liveData.length > 0) {
+          setVenuesList(liveData);
+        }
+      } catch (err) {
+        console.warn('Venues search fallback:', err);
+      }
+    }
+    loadAllVenues();
+  }, []);
 
   const [filters, setFilters] = useState<SearchFilterState>({
     state: 'All',
@@ -93,7 +109,7 @@ function VenuesSearchContent() {
 
   // Filter and Sort venues dynamically
   const filteredVenues = useMemo(() => {
-    return MOCK_VENUES.filter((venue) => {
+    return venuesList.filter((venue) => {
       // City
       if (filters.city !== 'All' && venue.city.toLowerCase() !== filters.city.toLowerCase()) {
         return false;
@@ -154,7 +170,7 @@ function VenuesSearchContent() {
       if (filters.sortBy === 'recent') return b.id.localeCompare(a.id);
       return b.reviewCount - a.reviewCount; // popular
     });
-  }, [filters]);
+  }, [filters, venuesList]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
