@@ -31,8 +31,9 @@ export function formatDate(dateStr: string): string {
 }
 
 export function calculateGST(taxableAmount: number, isInterstate = false) {
+  const safeAmount = Math.max(0, taxableAmount);
   if (isInterstate) {
-    const igst = Math.round(taxableAmount * 0.18);
+    const igst = Math.round(safeAmount * 0.18);
     return {
       cgst: 0,
       sgst: 0,
@@ -40,8 +41,8 @@ export function calculateGST(taxableAmount: number, isInterstate = false) {
       totalGst: igst,
     };
   }
-  const cgst = Math.round(taxableAmount * 0.09);
-  const sgst = Math.round(taxableAmount * 0.09);
+  const cgst = Math.round(safeAmount * 0.09);
+  const sgst = Math.round(safeAmount * 0.09);
   return {
     cgst,
     sgst,
