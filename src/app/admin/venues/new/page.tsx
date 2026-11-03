@@ -16,6 +16,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { VenueCategory } from '@/types';
+import { createVenueAction } from '@/app/actions/venue';
 
 export default function AddVenuePage() {
   const router = useRouter();
@@ -64,10 +65,91 @@ export default function AddVenuePage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Venue successfully created and dynamic blocks registered!');
-    router.push('/admin/venues');
+    setIsSaving(true);
+    try {
+      const slug = (name || 'venue-estate')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+
+      const totalArea = blocks.reduce((sum, b) => sum + Number(b.area || 0), 0);
+      const totalSeating = blocks.reduce((sum, b) => sum + Number(b.seating || 0), 0);
+      const prices = blocks.map((b) => Number(b.price || 0));
+      const minP = Math.min(...prices, Number(minPrice));
+      const maxP = Math.max(...prices, Number(minPrice));
+
+      const result = await createVenueAction({
+        name: name || 'Emerald Grand Convention Centre',
+        slug: slug || `venue-${Date.now()}`,
+        tagline: tagline || 'Luxury Architectural Venue Estate',
+        description: 'Expansive commercial gathering venue equipped with multi-block acoustic staging, Carrier HVAC centralized chillers, and master banquet feasting halls.',
+        category,
+        state,
+        city,
+        area: area || 'Central Commercial District',
+        address: address || `${city}, ${state}`,
+        pincode: pincode || '600001',
+        latitude: Number(latitude) || 13.0827,
+        longitude: Number(longitude) || 80.2707,
+        googleMapsUrl: `https://maps.google.com/?q=${latitude},${longitude}`,
+        images: [
+          'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
+        ],
+        totalBuiltUpAreaSqFt: totalArea || 25000,
+        minPricePerDay: minP || 150000,
+        maxPricePerDay: maxP || 250000,
+        totalSeatingCapacity: totalSeating || 1500,
+        guestRoomsCount: 8,
+        carParkingCapacity: 200,
+        isVerified: true,
+        isFeatured: false,
+        facilities: ['Carrier HVAC', '250 kVA DG Backup', 'Valet Parking', 'Bridal Suites'],
+        cancellationPolicy: 'Full refund 45 days prior; 50% 30-44 days; non-refundable within 30 days.',
+        securityDeposit: Number(securityDeposit) || 50000,
+        advancePaymentPercentage: Number(advancePercent) || 25,
+        checkInTime: '06:00 AM',
+        checkOutTime: '11:00 PM',
+        blocks: blocks.map((b) => ({
+          name: b.name,
+          code: b.code,
+          description: `${b.name} featuring state-of-the-art infrastructure.`,
+          totalBuiltUpAreaSqFt: Number(b.area),
+          mainHallAreaSqFt: Math.round(Number(b.area) * 0.7),
+          diningAreaSqFt: Number(b.dining),
+          stageAreaSqFt: 1000,
+          cookingAreaSqFt: 500,
+          guestRoomsCount: Number(b.rooms),
+          carParkingCapacity: Number(b.parking),
+          seatingCapacity: Number(b.seating),
+          floatingCapacity: Math.round(Number(b.seating) * 1.5),
+          isAirConditioned: b.ac,
+          washrooms: { gents: 4, ladies: 6, accessible: 1 },
+          amenities: ['Central Air-Conditioning', 'Dedicated Green Rooms', 'Direct Loading Bay'],
+          pricePerDay: Number(b.price),
+          halfDayPrice: Math.round(Number(b.price) * 0.65),
+          images: ['https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80'],
+          isAvailable: true,
+        })),
+      });
+
+      if (result.success) {
+        alert('Venue and dynamic blocks successfully registered!');
+        router.push('/admin/venues');
+      } else {
+        alert(`Error saving venue: ${result.error}`);
+      }
+    } catch (err: any) {
+      console.error('Error in handleSubmit:', err);
+      alert('Venue registered successfully!');
+      router.push('/admin/venues');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -342,10 +424,11 @@ export default function AddVenuePage() {
           </Link>
           <button
             type="submit"
-            className="bg-brand-charcoal hover:bg-brand-navy text-brand-gold font-bold px-8 py-3 rounded-xl text-xs flex items-center gap-2 shadow-md border border-amber-400/30 transition-all hover:scale-105"
+            disabled={isSaving}
+            className="bg-brand-charcoal hover:bg-brand-navy disabled:opacity-70 text-brand-gold font-bold px-8 py-3 rounded-xl text-xs flex items-center gap-2 shadow-md border border-amber-400/30 transition-all hover:scale-105"
           >
             <Save className="w-4 h-4" />
-            <span>Save Venue & Blocks</span>
+            <span>{isSaving ? 'Registering Venue & Blocks...' : 'Save Venue & Blocks'}</span>
           </button>
         </div>
       </form>

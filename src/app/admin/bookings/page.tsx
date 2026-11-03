@@ -19,6 +19,7 @@ import {
 import { MOCK_BOOKINGS } from '@/lib/mock-data';
 import { Booking } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { updateBookingStatusAction } from '@/app/actions/booking';
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>(MOCK_BOOKINGS);
@@ -35,13 +36,14 @@ export default function AdminBookingsPage() {
     return matchesStatus && matchesSearch;
   });
 
-  const updateStatus = (bookingId: string, newStatus: Booking['bookingStatus']) => {
+  const updateStatus = async (bookingId: string, newStatus: Booking['bookingStatus']) => {
     setBookings((prev) =>
       prev.map((b) => (b.id === bookingId ? { ...b, bookingStatus: newStatus } : b))
     );
     if (inspectBooking && inspectBooking.id === bookingId) {
       setInspectBooking({ ...inspectBooking, bookingStatus: newStatus });
     }
+    await updateBookingStatusAction(bookingId, newStatus);
   };
 
   const updatePayment = (bookingId: string, newPayment: Booking['paymentStatus']) => {

@@ -21,6 +21,7 @@ import {
 import { MOCK_VENUES } from '@/lib/mock-data';
 import { VenueBlock } from '@/types';
 import { formatCurrency, formatArea } from '@/lib/utils';
+import { toggleBlockAvailabilityAction } from '@/app/actions/venue';
 
 function DynamicBlocksContent() {
   const searchParams = useSearchParams();
@@ -92,10 +93,14 @@ function DynamicBlocksContent() {
     }
   };
 
-  const toggleAvailability = (blockId: string) => {
+  const toggleAvailability = async (blockId: string) => {
+    const target = blocks.find((b) => b.id === blockId);
+    if (!target) return;
+    const nextState = !target.isAvailable;
     setBlocks((prev) =>
-      prev.map((b) => (b.id === blockId ? { ...b, isAvailable: !b.isAvailable } : b))
+      prev.map((b) => (b.id === blockId ? { ...b, isAvailable: nextState } : b))
     );
+    await toggleBlockAvailabilityAction(blockId, nextState);
   };
 
   return (

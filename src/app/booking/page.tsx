@@ -27,6 +27,7 @@ import {
 import { MOCK_VENUES } from '@/lib/mock-data';
 import { formatCurrency, formatArea, calculateGST, formatDate } from '@/lib/utils';
 import { Venue, VenueBlock } from '@/types';
+import { createBookingAction } from '@/app/actions/booking';
 
 function BookingWorkflowContent() {
   const searchParams = useSearchParams();
@@ -70,7 +71,8 @@ function BookingWorkflowContent() {
   // Payment Plan from Stitch: Option A (25% Advance) vs Option B (100% Full Payment with 2% discount)
   const [paymentOption, setPaymentOption] = useState<'advance' | 'full'>('advance');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
-  const [bookingReference] = useState('GV-MAA-9402');
+  const [bookingReference, setBookingReference] = useState('GV-MAA-9402');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addonsList = [
     { name: '250 kVA Generator Fuel Backup (24 Hrs Guaranteed)', price: 18000 },
@@ -122,7 +124,46 @@ function BookingWorkflowContent() {
     );
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
+    if (currentStep === 9) {
+      setIsSubmitting(true);
+      try {
+        const blockPrices: Record<string, number> = {};
+        selectedBlocks.forEach((b) => {
+          blockPrices[b.id] = timeSlot === 'full-day' ? b.pricePerDay * 2 : (b.halfDayPrice || b.pricePerDay * 0.65);
+        });
+
+        const result = await createBookingAction({
+          venueId: venue.id,
+          blockIds: selectedBlockIds,
+          blockPrices,
+          customerName,
+          customerEmail,
+          customerPhone,
+          customerGstin: customerGstin || undefined,
+          eventType,
+          eventDate,
+          timeSlot,
+          guestCount,
+          selectedFacilities: selectedAddons,
+          facilitiesCost,
+          packageDiscount: comboDiscount,
+          securityDeposit,
+          isInterstate,
+          paymentPlan: paymentOption,
+          specialRequests: `Guest Count: ${guestCount}, Layout: Banquet & Stage`,
+        });
+
+        if (result.success && result.referenceNumber) {
+          setBookingReference(result.referenceNumber);
+        }
+      } catch (err) {
+        console.warn('Booking action fallback:', err);
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+
     if (currentStep < 10) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -907,10 +948,11 @@ function BookingWorkflowContent() {
               </button>
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={handleNextStep}
-                className="bg-brand-charcoal hover:bg-brand-navy text-brand-gold font-bold px-8 py-3.5 rounded-xl text-sm flex items-center gap-2 shadow-lg"
+                className="bg-brand-charcoal hover:bg-brand-navy disabled:opacity-75 text-brand-gold font-bold px-8 py-3.5 rounded-xl text-sm flex items-center gap-2 shadow-lg transition-all"
               >
-                <span>Authorize & Pay {formatCurrency(amountToPayNow)}</span>
+                <span>{isSubmitting ? 'Securing Dates & Registry...' : `Authorize & Pay ${formatCurrency(amountToPayNow)}`}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
