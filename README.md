@@ -93,8 +93,8 @@ graph TD
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/ishuRam-15/Event-and-venue-booking-plaatform.git
-cd Event-and-venue-booking-plaatform
+git clone https://github.com/ishuRam-15/Event-venue-booking-platform.git
+cd Event-venue-booking-platform
 
 # 2. Install dependencies
 npm install
