@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { VenueCategory } from '@/types';
 import { createVenueAction } from '@/app/actions/venue';
+import { SUPPORTED_CITIES, getCityMetadata } from '@/lib/cities';
 
 export default function AddVenuePage() {
   const router = useRouter();
@@ -30,6 +31,17 @@ export default function AddVenuePage() {
   const [pincode, setPincode] = useState('600101');
   const [latitude, setLatitude] = useState('13.0850');
   const [longitude, setLongitude] = useState('80.1980');
+
+  const handleCityChange = (selectedCity: string) => {
+    setCity(selectedCity);
+    const meta = getCityMetadata(selectedCity);
+    if (meta) {
+      setState(meta.state);
+      setPincode(meta.pincode);
+      setLatitude(meta.defaultLat);
+      setLongitude(meta.defaultLng);
+    }
+  };
   const [minPrice, setMinPrice] = useState('150000');
   const [securityDeposit, setSecurityDeposit] = useState('50000');
   const [advancePercent, setAdvancePercent] = useState('25');
@@ -240,13 +252,18 @@ export default function AddVenuePage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 uppercase">City</label>
-              <input
-                type="text"
+              <label className="text-xs font-bold text-slate-700 uppercase">City ({state})</label>
+              <select
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none"
-              />
+                onChange={(e) => handleCityChange(e.target.value)}
+                className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-brand-gold"
+              >
+                {SUPPORTED_CITIES.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.selectLabel}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-1">

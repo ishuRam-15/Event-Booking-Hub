@@ -7,7 +7,7 @@ This directory contains the production-grade PostgreSQL database schema, Row Lev
 ## 📁 File Structure
 
 - **`schema.sql`**: Full DDL schema script containing all 8 tables, foreign keys, cascade constraints, `updated_at` automated triggers, `auth.users` sync triggers, and watertight Row Level Security (RLS) policies.
-- **`seed.sql`**: High-fidelity seed data aligned with Google Stitch designs, containing 6 premium venues, 14 architectural blocks, verified profiles, GST-calculated bookings, and user reviews.
+- **`seed.sql`**: High-fidelity seed data aligned with Google Stitch designs, containing 6 premium venues across 3 Southern Metros (Chennai, Bengaluru, Hyderabad), 13 architectural blocks, verified profiles, GST-calculated bookings, and user reviews.
 
 ---
 

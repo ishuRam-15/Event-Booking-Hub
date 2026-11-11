@@ -21,13 +21,16 @@ import {
   Heart
 } from 'lucide-react';
 import { MOCK_VENUES } from '@/lib/mock-data';
+import { SUPPORTED_CITIES } from '@/lib/cities';
 import { getFeaturedVenues } from '@/lib/dal/venues';
 import { Venue } from '@/types';
 import VenueCard from '@/components/cards/VenueCard';
 
 export default function HomePage() {
   const router = useRouter();
-  const [venuesList, setVenuesList] = useState<Venue[]>(MOCK_VENUES);
+  const [venuesList, setVenuesList] = useState<Venue[]>(() =>
+    MOCK_VENUES.filter((v) => v.featured)
+  );
   const [searchLocation, setSearchLocation] = useState('Chennai');
   const [searchDate, setSearchDate] = useState('2026-12-15');
   const [searchType, setSearchType] = useState('wedding');
@@ -99,12 +102,13 @@ export default function HomePage() {
     },
   ];
 
-  const popularLocations = [
-    { name: 'Chennai', state: 'Tamil Nadu', count: '64 Venues', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Bengaluru', state: 'Karnataka', count: '52 Venues', image: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Hyderabad', state: 'Telangana', count: '48 Venues', image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=500&q=80' },
-    { name: 'Mumbai', state: 'Maharashtra', count: '70 Venues', image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=500&q=80' },
-  ];
+  const popularLocations = SUPPORTED_CITIES.map((c) => ({
+    name: c.name,
+    displayName: c.label,
+    state: c.state,
+    count: c.showcaseCount,
+    image: c.image,
+  }));
 
   return (
     <div className="space-y-20 pb-20">
@@ -153,11 +157,12 @@ export default function HomePage() {
                   onChange={(e) => setSearchLocation(e.target.value)}
                   className="w-full bg-transparent text-sm font-semibold text-slate-900 focus:outline-none cursor-pointer"
                 >
-                  <option value="Chennai">Chennai, TN</option>
-                  <option value="Bengaluru">Bengaluru, KA</option>
-                  <option value="Hyderabad">Hyderabad, TS</option>
-                  <option value="Mumbai">Mumbai, MH</option>
-                  <option value="Delhi">Delhi NCR</option>
+                  {SUPPORTED_CITIES.map((city) => (
+                    <option key={city.name} value={city.name}>
+                      {city.label}, {city.stateShort}
+                    </option>
+                  ))}
+                  <option value="All">All 3 Metros</option>
                 </select>
               </div>
 
@@ -437,11 +442,11 @@ export default function HomePage() {
             Explore Venues by City
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Browse premier properties across major metropolitan event hubs with local proximity sorting.
+            Browse premier properties across Chennai, Bengaluru, and Hyderabad with local proximity sorting.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {popularLocations.map((loc) => (
             <Link
               key={loc.name}
@@ -456,7 +461,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute bottom-4 left-4 right-4 text-white">
                 <span className="text-xs text-amber-300 font-medium">{loc.state}</span>
-                <h3 className="text-xl font-bold font-serif">{loc.name}</h3>
+                <h3 className="text-xl font-bold font-serif">{loc.displayName}</h3>
                 <span className="text-xs text-slate-300 mt-0.5 block">{loc.count}</span>
               </div>
             </Link>

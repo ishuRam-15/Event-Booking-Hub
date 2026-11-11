@@ -14,7 +14,7 @@
 ## 🌟 Key Features
 
 ### 1. 🔍 Granular Discovery & 14+ Dimension Search
-- Real-time filtering across **Metro Corridors** (e.g. Chennai ECR & OMR, Bengaluru Palace Grounds).
+- Real-time filtering across **3 Southern Metro Corridors** (Chennai ECR & OMR, Bengaluru Whitefield, Hyderabad Jubilee Hills & Financial District).
 - Range filters for **Built-Up Area** (5,000 to 65,000+ sq. ft) and **Seating Capacity** (100 to 3,000+ patrons).
 - HVAC chillers vs Natural Ventilation options.
 - Specific infrastructure toggles: Valet Parking, Dedicated EV Charging Stations, 100% DG Power Backup, Commercial Prep Kitchens, and Accessible Elevators.

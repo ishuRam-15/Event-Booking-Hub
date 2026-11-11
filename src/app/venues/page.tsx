@@ -17,6 +17,12 @@ import {
   X
 } from 'lucide-react';
 import { MOCK_VENUES } from '@/lib/mock-data';
+import {
+  SUPPORTED_CITIES,
+  getCityMetadata,
+  getCityMapEmbedUrl,
+  normalizeCityName,
+} from '@/lib/cities';
 import { getVenues } from '@/lib/dal/venues';
 import VenueCard from '@/components/cards/VenueCard';
 import { SearchFilterState, Venue } from '@/types';
@@ -39,9 +45,15 @@ function VenuesSearchContent() {
     loadAllVenues();
   }, []);
 
+  const initialCityParam = searchParams.get('city');
+  const resolvedInitialCity =
+    initialCityParam && initialCityParam.toLowerCase() !== 'all'
+      ? getCityMetadata(initialCityParam)?.name || 'All'
+      : 'All';
+
   const [filters, setFilters] = useState<SearchFilterState>({
     state: 'All',
-    city: searchParams.get('city') || 'All',
+    city: resolvedInitialCity,
     locality: '',
     category: searchParams.get('category') || 'All',
     distanceRadius: 25,
@@ -111,7 +123,10 @@ function VenuesSearchContent() {
   const filteredVenues = useMemo(() => {
     return venuesList.filter((venue) => {
       // City
-      if (filters.city !== 'All' && venue.city.toLowerCase() !== filters.city.toLowerCase()) {
+      if (
+        filters.city !== 'All' &&
+        normalizeCityName(venue.city) !== normalizeCityName(filters.city)
+      ) {
         return false;
       }
       // Category
@@ -271,11 +286,12 @@ function VenuesSearchContent() {
               onChange={(e) => setFilters({ ...filters, city: e.target.value })}
               className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-brand-gold"
             >
-              <option value="All">All Metros & Cities</option>
-              <option value="Chennai">Chennai, Tamil Nadu</option>
-              <option value="Bengaluru">Bengaluru, Karnataka</option>
-              <option value="Hyderabad">Hyderabad, Telangana</option>
-              <option value="Mumbai">Mumbai, Maharashtra</option>
+              <option value="All">All 3 Metros (Chennai · Bengaluru · Hyderabad)</option>
+              {SUPPORTED_CITIES.map((city) => (
+                <option key={city.name} value={city.name}>
+                  {city.selectLabel}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -482,18 +498,20 @@ function VenuesSearchContent() {
                 )}
               </div>
 
-              {/* Right Column: Google Maps Interactive Embed Mock */}
+              {/* Right Column: Dynamic City Google Maps Embed */}
               <div className="lg:col-span-6 bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 relative min-h-[500px] shadow-lg">
                 <iframe
-                  title="Google Maps Venue Discovery"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d124376.81898516093!2d80.12783852028695!3d13.0826802!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a5265ea4f7d3361%3A0x6e61a70b6863d433!2sChennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                  title={`Google Maps Venue Discovery - ${filters.city}`}
+                  src={getCityMapEmbedUrl(filters.city)}
                   className="w-full h-full min-h-[550px] border-0"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
                 <div className="absolute top-4 left-4 bg-brand-charcoal/90 backdrop-blur-md text-white px-3.5 py-2 rounded-xl text-xs font-semibold border border-amber-400/30 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-brand-gold" />
-                  <span>Interactive Map · {filteredVenues.length} Locations Pinned</span>
+                  <span>
+                    Interactive Map · {filters.city === 'All' ? 'All 3 Cities' : filters.city} ({filteredVenues.length} Venues)
+                  </span>
                 </div>
               </div>
             </div>
@@ -553,11 +571,12 @@ function VenuesSearchContent() {
                   onChange={(e) => setFilters({ ...filters, city: e.target.value })}
                   className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl p-3 mt-1"
                 >
-                  <option value="All">All Metros & Cities</option>
-                  <option value="Chennai">Chennai, Tamil Nadu</option>
-                  <option value="Bengaluru">Bengaluru, Karnataka</option>
-                  <option value="Hyderabad">Hyderabad, Telangana</option>
-                  <option value="Mumbai">Mumbai, Maharashtra</option>
+                  <option value="All">All 3 Metros (Chennai · Bengaluru · Hyderabad)</option>
+                  {SUPPORTED_CITIES.map((city) => (
+                    <option key={city.name} value={city.name}>
+                      {city.selectLabel}
+                    </option>
+                  ))}
                 </select>
               </div>
 

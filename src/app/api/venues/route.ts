@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getVenues } from '@/lib/dal/venues';
+import { normalizeCityName } from '@/lib/cities';
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,8 +21,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Filter by city
-    if (city && city !== 'all') {
-      venues = venues.filter((v) => v.city.toLowerCase() === city.toLowerCase());
+    if (city && city.toLowerCase() !== 'all') {
+      venues = venues.filter((v) => normalizeCityName(v.city) === normalizeCityName(city));
     }
 
     // 3. Filter by price

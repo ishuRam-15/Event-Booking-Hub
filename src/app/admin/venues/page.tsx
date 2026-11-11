@@ -14,6 +14,7 @@ import {
   ArrowUpRight 
 } from 'lucide-react';
 import { MOCK_VENUES } from '@/lib/mock-data';
+import { SUPPORTED_CITIES } from '@/lib/cities';
 import { getVenues } from '@/lib/dal/venues';
 import { deleteVenueAction } from '@/app/actions/venue';
 import { formatCurrency, formatArea } from '@/lib/utils';
@@ -97,10 +98,12 @@ export default function AdminVenuesPage() {
             onChange={(e) => setCityFilter(e.target.value)}
             className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none"
           >
-            <option value="All">All Cities</option>
-            <option value="Chennai">Chennai</option>
-            <option value="Bengaluru">Bengaluru</option>
-            <option value="Hyderabad">Hyderabad</option>
+            <option value="All">All 3 Cities</option>
+            {SUPPORTED_CITIES.map((city) => (
+              <option key={city.name} value={city.name}>
+                {city.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>

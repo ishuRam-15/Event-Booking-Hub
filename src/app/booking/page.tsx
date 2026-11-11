@@ -622,7 +622,7 @@ function BookingWorkflowContent() {
                       : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
-                  Intra-State (TN: CGST 9% + SGST 9%)
+                  Intra-State ({venue?.state || 'Same State'}: CGST 9% + SGST 9%)
                 </button>
                 <button
                   type="button"

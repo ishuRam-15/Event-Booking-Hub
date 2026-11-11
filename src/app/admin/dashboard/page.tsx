@@ -218,7 +218,7 @@ export default function AdminDashboardPage() {
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span>The Grand Ivory (Bengaluru)</span>
+                  <span>The Corinthian Palace (Bengaluru)</span>
                   <span className="font-bold text-slate-900">32%</span>
                 </div>
                 <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
