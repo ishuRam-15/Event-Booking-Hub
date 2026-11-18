@@ -65,27 +65,17 @@ Traditional venue booking portals operate as lead-generation classifieds that se
 4. **Resilient High-Performance Web Access:** Achieve sub-second page loads, 100% offline development resilience via a typed Data Access Layer (DAL) fallback, and role-based operational command for venue managers.
 
 ### 1.3 Target Audience
-```mermaid
-flowchart TD
-    Audience["GrandVenue Target Market Ecosystem"]
-    
-    Audience --> IndividualHosts["1. Individual & Family Hosts"]
-    Audience --> CorporatePlanners["2. Enterprise & Corporate Event Planners"]
-    Audience --> EventManagers["3. Professional Wedding & Production Agencies"]
-    Audience --> VenueOwners["4. Estate Owners & Convention Administrators"]
 
-    IndividualHosts --> H1["Weddings, Muhurtham, Receptions"]
-    IndividualHosts --> H2["Sangeet & Haldi celebrations"]
-    
-    CorporatePlanners --> C1["Annual General Meetings (AGMs) & Tech Summits"]
-    CorporatePlanners --> C2["Product Launches & Executive Retreats"]
-    
-    EventManagers --> E1["Production agencies requiring stage rigging specs"]
-    EventManagers --> E2["Caterers needing kitchen & gas line capacities"]
-    
-    VenueOwners --> V1["Palace grounds & convention centre directors"]
-    VenueOwners --> V2["Hotel banqueting sales managers"]
-```
+![GrandVenue Target Audience Ecosystem](../public/images/target-audience-diagram.png)
+
+#### Structured Audience Breakdown (Text Specification)
+
+| Segment No. | Audience Classification | Primary Use-Cases & Events | GrandVenue Tailored Value Proposition |
+| :---: | :--- | :--- | :--- |
+| **01** | **Individual & Family Hosts** *(Weddings & Milestones)* | • Traditional Muhurtham & Reception feasting<br>• Multi-generational family guest accommodations<br>• Auspicious wedding date locking with advance token<br>• Complete dining & live kitchen infrastructure | • **10% Combo Discount** on 2 blocks; **12%** on 3+ blocks<br>• **25% Advance Token Lock** to secure auspicious muhurtham dates<br>• Dedicated VIP bridal suites with centralized AC<br>• Direct pricing with **zero broker markups** or middleman calls |
+| **02** | **Corporate & Enterprise Planners** *(B2B Summits & Galas)* | • Annual General Meetings (AGMs) & tech symposiums<br>• Pillarless exhibition arenas & breakout suites<br>• Commercial GSTIN compliance for Input Tax Credit (ITC)<br>• Redundant DG power & high-bandwidth connectivity | • Statutory **SAC 997212 GST Tax Invoices** (IGST / CGST+SGST)<br>• **2% prompt settlement waiver** on full balance payment<br>• Option to isolate Block B exclusively for corporate dining<br>• Verified built-up sqft and 28ft clear stage heights |
+| **03** | **Event & Production Agencies** *(Turnkey Execution)* | • Stage rigging dimensions & truss load points<br>• Direct heavy cargo vehicle ramp access<br>• Sound isolation corridors between ballrooms<br>• Commercial chef kitchens for master caterers | • **LiDAR-measured** architectural floorplan blueprints<br>• **250 kVA auto-synchronous DG power backup** guaranteed<br>• Starlight open lawn + acoustic indoor hall bundling<br>• Real-time slot availability for morning/evening shifts |
+| **04** | **Estate Owners & Venue Directors** *(Asset Monetization)* | • Maximizing multi-block weekend occupancy rates<br>• Real-time digital calendar locking without overlaps<br>• Clear revenue analytics across active properties<br>• Eliminating reliance on commission-heavy local brokers | • **Executive Admin Suite** with instant status approvals<br>• Dynamic block-level calendar lock / availability switch<br>• Automated refundable caution escrow management<br>• Direct host booking settlement into operator accounts |
 
 ### 1.4 Key Features and Functionalities
 1. **14+ Dimension Discovery Engine:** Real-time multi-criteria filtering across 3 metros (`Chennai`, `Bengaluru`, `Hyderabad`), event categories (`marriage-hall`, `convention-centre`, `banquet-hall`, `party-hall`, `corporate`, `outdoor-lawn`), price sliders, dining capacity, parking bays, and HVAC chiller specs.
