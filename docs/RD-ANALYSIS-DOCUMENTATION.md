@@ -99,6 +99,11 @@ GrandVenue enforces strict Role-Based Access Control (RBAC) via Supabase Auth an
 | **Estate Administrator (`admin`)** | ✅ | ✅ | ✅ | ✅ *(Full CRUD)* | ✅ *(Metrics & Approvals)* |
 
 ### 1.6 System Workflow
+
+![GrandVenue End-to-End System Workflow Architecture](../public/images/system-workflow-diagram.png)
+
+#### Sequence Diagram (Technical Specification)
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -192,6 +197,10 @@ sequenceDiagram
 
 ### 2.6 Strengths and Weaknesses
 
+![GrandVenue vs Legacy Competitors Analysis](../public/images/competitor-analysis-diagram.png)
+
+#### Strategic Comparison Flowchart (Technical Specification)
+
 ```mermaid
 flowchart TD
     subgraph Competitors ["Legacy Competitors (WedMeGood, WeddingWire)"]
@@ -241,6 +250,9 @@ flowchart TD
 - **Next.js Edge Middleware:** High-speed JWT verification running at the edge before request execution.
 
 ### 3.3 Database Architecture
+
+![GrandVenue PostgreSQL Relational ER Diagram](../public/images/database-er-diagram.png)
+
 - **Supabase PostgreSQL 15:** 8 relational tables with foreign keys and cascade rules:
   1. `profiles`: User identity, role flags, company GSTIN.
   2. `venues`: Venue properties, geo-coordinates, built-up areas, cancellation policies.
@@ -250,6 +262,8 @@ flowchart TD
   6. `saved_venues`: User shortlisted favorites.
   7. `reviews`: Verified host ratings and event testimonials.
   8. `platform_settings`: SAC code, default GST rates, advance token percentages.
+
+#### Relational ER Diagram (Technical Specification)
 
 ```mermaid
 erDiagram
@@ -366,6 +380,10 @@ flowchart LR
 ```
 
 ### 4.3 Project Roadmap
+
+![GrandVenue Strategic Project Roadmap (2026 - 2027)](../public/images/project-roadmap-diagram.png)
+
+#### Phased Milestones (Technical Specification)
 
 ```mermaid
 flowchart TD
